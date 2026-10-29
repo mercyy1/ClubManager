@@ -1,0 +1,11 @@
+# NetBeans / Ant build output
+build/
+dist/
+nbproject/private/
+
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
