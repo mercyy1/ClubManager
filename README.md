@@ -1,51 +1,60 @@
-MPClub - Club Management System
+# MPClub: Club Management System
 
-Think of this project as a small digital clubhouse.
-It doesn’t have all the bells and whistles of modern frameworks, but it shows how the classic Java web stack - Servlets, JSP, JDBC, and Tomcat - can come together to build something real.
+A small club management web app built on the classic Java web stack: **Servlets, JSP, JDBC and Tomcat**, with no frameworks. Members can register, admins can view, edit and remove members, and anyone can browse or add to a shared book catalog.
 
-What you can do here
+I built it to understand what frameworks like Spring normally hide: pooling database connections, handling form posts, forwarding requests between servlets and JSPs, and stitching pages together from shared fragments.
 
-- Register as a member with your details (name, email, program, year).
+## Features
 
-- Browse and add books to a simple catalog.
+- **Member registration** with name, email, phone, program and year
+- **Admin console** to list, edit and remove members (`MPMemberAdminController`)
+- **Book catalog** that you can view and add to, stored in a flat file (`WEB-INF/books.txt`)
+- **Central error page**: any uncaught exception is routed to `MPError.jsp` through `web.xml`
+- **JUnit tests** for the `Member` model and the database layer
 
-- Admin view to display, edit, or remove members.
+## Architecture
 
-- Error handling with a dedicated error page when things go wrong.
+```
+Browser ──► Servlets (club.Admin)          request handling, validation, routing
+              │
+              ├──► club.business            Member, Book (plain Java beans)
+              │
+              └──► club.data
+                     ├─ MemberDB            JDBC with prepared statements ──► MySQL
+                     ├─ ConnectionPool      JNDI DataSource from context.xml
+                     └─ BookIO              reads/writes books.txt
+              │
+              ▼
+           JSP views (web/*.jsp) + shared banner/footer fragments
+```
 
-🛠 How it’s built
+All SQL uses `PreparedStatement` parameters, so user input is never concatenated into queries, which protects against SQL injection. Connections come from a container-managed pool rather than being opened per request.
 
-Backend → Java Servlets handling requests & business logic
+## Running it locally
 
-Frontend → JSP pages + a touch of CSS for layout
+**You'll need:** JDK 21, Apache Tomcat 9 (the app uses the `javax.servlet` API), MySQL 8, and NetBeans or Ant.
 
-Database → MySQL for members, text file storage for books
+1. **Create the database:**
+   ```bash
+   mysql -u root -p < schema.sql
+   ```
+2. **Set your DB credentials** in `web/META-INF/context.xml` (`username` / `password`).
+3. **Build and deploy:** open the project in NetBeans and press Run, or build `dist/MPClub.war` with Ant and drop it into Tomcat's `webapps/` folder.
+4. **Open** http://localhost:8080/MPClub
 
-Testing → JUnit tests for database operations
+| Page | URL |
+| --- | --- |
+| Home | `/MPClub/` |
+| Register a member | `/MPClub/MPRegister.jsp` |
+| Manage members | `/MPClub/MPMemberAdmin?action=displayMembers` |
+| Book catalog | `/MPClub/MPDisplayBooks` |
 
-Deployment → Runs on Apache Tomcat as a WAR file
+## Project layout
 
-🚀 Why it matters
-
-This app was my way of understanding the nuts and bolts of Java web apps. Instead of relying on frameworks, it gets into the raw details: managing database connections, handling form submissions, forwarding requests, and stitching JSPs together.
-
-It’s not just “yet another CRUD app” — it’s my hands-on attempt at wiring up the moving parts of a real web application.
-
-▶️ How to run it
-
-Clone the repo.
-
-Create a MySQL database named memberdb (or adjust context.xml).
-
-Deploy the project to Tomcat.
-
-Open http://localhost:8080/MPClub
-.
-
-Pages to explore:
-
-/MPRegister.jsp → Register a new member
-
-/MPMemberAdmin?action=displayMembers → Manage members
-
-/MPDisplayBooks → View the book catalog
+```
+src/java/club/   Servlets, business objects, data access
+web/             JSP pages, CSS, images, web.xml, context.xml
+test/            JUnit tests
+lib/             JDBC driver and Tomcat connection-pool jars
+schema.sql       Database setup
+```

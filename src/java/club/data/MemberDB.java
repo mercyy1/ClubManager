@@ -112,7 +112,7 @@ public class MemberDB {
         PreparedStatement ps = null;
         ResultSet rs = null;
 
-        String query = "SELECT * FROM Member " +
+        String query = "SELECT * FROM member " +
                 "WHERE EmailAddress = ?";
         try {
             ps = connection.prepareStatement(query);
@@ -144,7 +144,7 @@ public class MemberDB {
         PreparedStatement ps = null;
         ResultSet rs = null;
 
-        String query = "SELECT * FROM Member";
+        String query = "SELECT * FROM member";
         try {
             ps = connection.prepareStatement(query);
             rs = ps.executeQuery();
